@@ -29,8 +29,8 @@ void TestExcludeStopWordsFromAddedDocumentContent() {
 // Поддержка минус-слов. Документы, содержащие минус-слова поискового запроса, не должны включаться в результаты поиска.
 void TestMinusWords() {
 	const int doc_id = 1;
-    const string content = "cat in the city"s;
-    const vector<int> ratings = {1, 2, 3};
+	const string content = "cat in the city"s;
+	const vector<int> ratings = {1, 2, 3};
 	{
         SearchServer server;
         server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings);
@@ -53,9 +53,11 @@ void TestSortFindDocumentsByRelevance() {
     search_server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, {5, -12, 2, 1});
     search_server.AddDocument(3, "ухоженный скворец евгений"s,         DocumentStatus::BANNED, {9});
 	const auto found_docs = search_server.FindTopDocuments("пушистый ухоженный кот"s);
-	ASSERT(found_docs[0].id);
+	ASSERT_EQUAL(found_docs[0].id, 1);
 	ASSERT_EQUAL(found_docs[1].id, 0);
 	ASSERT_EQUAL(found_docs[2].id,  2);
+	ASSERT(found_docs[0].relevance >= found_docs[1].relevance);
+	ASSERT(found_docs[1].relevance >= found_docs[2].relevance);
 }
 
 // Поиск документов, имеющих заданный статус.
@@ -70,6 +72,8 @@ void TestFindDocumentsStatus() {
 	ASSERT_EQUAL(found_docs.size(), 1);
 	const auto found_docs_2 = search_server.FindTopDocuments("пушистый ухоженный кот"s, DocumentStatus::REMOVED);
 	ASSERT_EQUAL(found_docs_2.size(), 0);
+	const auto found_docs_3 = search_server.FindTopDocuments("белый кот"s, DocumentStatus::ACTUAL);
+	ASSERT_EQUAL(found_docs_3.size(), 2);
 }
 
 //Фильтрация результатов поиска с использованием предиката, задаваемого пользователем
@@ -90,7 +94,7 @@ void TestFilteringSearchResults() {
 }
 
 // Вычисление рейтинга документов
-void TestCalculaitRaiting() {
+void TestCalculateRating() {
 	SearchServer search_server;
     search_server.SetStopWords("и в на"s);
     search_server.AddDocument(0, "белый кот и модный ошейник"s,        DocumentStatus::ACTUAL, {8, -3});
@@ -103,7 +107,7 @@ void TestCalculaitRaiting() {
 }
 
 // Корректное вычисление релевантности найденных документов
-void TestCalculaitRelevance() {
+void TestCalculateRelevance() {
 	SearchServer search_server;
     search_server.SetStopWords("и в"s);
     search_server.AddDocument(0, "белый кот и модный ошейник"s,        DocumentStatus::ACTUAL, {8, -3});
@@ -111,7 +115,9 @@ void TestCalculaitRelevance() {
     search_server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, {5, -12, 2, 1});
     search_server.AddDocument(3, "ухоженный скворец евгений"s,         DocumentStatus::BANNED, {9});
 	const auto found_docs = search_server.FindTopDocuments("пушистый ухоженный кот"s);
-	ASSERT((found_docs[0].relevance - 0.866434) < 1e-6);
+	const double epsilon = 1e-6;
+	ASSERT((found_docs[0].relevance - 0.866434) < epsilon);
+	ASSERT((found_docs[1].relevance - 0.173287) < epsilon);
 
 }
 
@@ -119,12 +125,11 @@ void TestCalculaitRelevance() {
 void TestSearchServer() {
     TestExcludeStopWordsFromAddedDocumentContent();
 	TestMinusWords();
-	//TestMatchDocuments();
 	TestSortFindDocumentsByRelevance();
 	TestFindDocumentsStatus();
 	TestFilteringSearchResults();
-	TestCalculaitRaiting();
-	TestCalculaitRelevance();
+	TestCalculateRating();
+	TestCalculateRelevance();
     // Не забудьте вызывать остальные тесты здесь
 }
 
