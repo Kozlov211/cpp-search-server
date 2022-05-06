@@ -80,8 +80,8 @@ enum class DocumentStatus {
 class SearchServer {
 public:
 	inline static constexpr int INVALID_DOCUMENT_ID = -1;
-
-    template <typename StringContainer>
+	
+	template <typename StringContainer>
     explicit SearchServer(const StringContainer& stop_words) : stop_words_(MakeUniqueNonEmptyStrings(stop_words)) {
 		for (const string& word : stop_words_) {
 			if (!IsValidWord(word)) {
@@ -90,8 +90,7 @@ public:
 		}
     }
 
-    explicit SearchServer(const string& stop_words_text)
-        : SearchServer(SplitIntoWords(stop_words_text)) 
+    explicit SearchServer(const string& stop_words_text) : SearchServer(SplitIntoWords(stop_words_text)) 
     {}
 
     void  AddDocument(int document_id, const string& document, DocumentStatus status, const vector<int>& ratings) {
@@ -108,7 +107,7 @@ public:
             word_to_document_freqs_[word][document_id] += inv_word_count;
         }
         documents_.emplace(document_id, DocumentData{ComputeAverageRating(ratings), status});
-    }
+	}
 
     template <typename DocumentPredicate>
 	vector<Document> FindTopDocuments(const string& raw_query, DocumentPredicate document_predicate) const {
@@ -126,18 +125,18 @@ public:
         }
 		return matched_documents;
     }
-
-   vector<Document> FindTopDocuments(const string& raw_query, DocumentStatus status) const {
-        return FindTopDocuments(raw_query, [status](int document_id, DocumentStatus document_status, int rating) {
+	
+	vector<Document> FindTopDocuments(const string& raw_query, DocumentStatus status) const {
+    	return FindTopDocuments(raw_query, [status](int document_id, DocumentStatus document_status, int rating) {
             return document_status == status;
         });
     }
-
-   vector<Document> FindTopDocuments(const string& raw_query) const {
+ 
+	vector<Document> FindTopDocuments(const string& raw_query) const {
         return FindTopDocuments(raw_query, DocumentStatus::ACTUAL);
     }
-
-    int GetDocumentCount() const {
+	
+	int GetDocumentCount() const {
         return documents_.size();
     }
 
@@ -229,7 +228,6 @@ private:
 
     QueryWord ParseQueryWord(string text) const {
         bool is_minus = false;
-        // Word shouldn't be empty
         if (text[0] == '-') {
             is_minus = true;
             text = text.substr(1);
