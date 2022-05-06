@@ -7,6 +7,7 @@
 #include <utility>
 #include <vector>
 #include <stdexcept>
+#include <numeric>
 
 using namespace std;
 
@@ -79,15 +80,13 @@ enum class DocumentStatus {
 
 class SearchServer {
 public:
-    inline static constexpr int INVALID_DOCUMENT_ID = -1;
-	
     template <typename StringContainer>
     explicit SearchServer(const StringContainer& stop_words) : stop_words_(MakeUniqueNonEmptyStrings(stop_words)) {
-	for (const string& word : stop_words_) {
-	    if (!IsValidWord(word)) {
-	        throw invalid_argument("Стоп слово содержит недопустимые символы"s);
-	    }				
-	}
+        for (const string& word : stop_words_) {
+            if (!IsValidWord(word)) {
+                throw invalid_argument("Стоп слово содержит недопустимые символы"s);
+            }				
+        }
     }
 
     explicit SearchServer(const string& stop_words_text) : SearchServer(SplitIntoWords(stop_words_text)) 
@@ -101,9 +100,6 @@ public:
         const vector<string> words = SplitIntoWordsNoStop(document);
         const double inv_word_count = 1.0 / words.size();
         for (const string& word : words) {
-            if (!IsValidWord(word)) {
-                throw invalid_argument("Наличие недопустимых символов в тексте добавляемого документы");
-	    }
             word_to_document_freqs_[word][document_id] += inv_word_count;
         }
         documents_.emplace(document_id, DocumentData{ComputeAverageRating(ratings), status});
@@ -113,12 +109,14 @@ public:
     vector<Document> FindTopDocuments(const string& raw_query, DocumentPredicate document_predicate) const {
         const Query query = ParseQuery(raw_query);
         vector<Document> matched_documents = FindAllDocuments(query, document_predicate);
+        
         sort(matched_documents.begin(), matched_documents.end(), [](const Document& lhs, const Document& rhs) {
-        if (abs(lhs.relevance - rhs.relevance) < 1e-6) {
-            return lhs.rating > rhs.rating;
-        } else { 
-            return lhs.relevance > rhs.relevance;
-        } });
+            double epsilon = 1e-6;
+            if (abs(lhs.relevance - rhs.relevance) < epsilon) {
+                return lhs.rating > rhs.rating;
+            } else { 
+                return lhs.relevance > rhs.relevance;
+            } });
     	if (matched_documents.size() > MAX_RESULT_DOCUMENT_COUNT) {
     	    matched_documents.resize(MAX_RESULT_DOCUMENT_COUNT);
     	    }
@@ -142,9 +140,6 @@ public:
         const Query query = ParseQuery(raw_query);
         vector<string> matched_words;
         for (const string& word : query.plus_words) {
-	    if (!IsValidWord(word)) {
-	        throw invalid_argument("Наличие недопустимых символов в тексте запроса");
-            }
             if (word_to_document_freqs_.count(word) == 0) {
                 continue;
             }
@@ -153,9 +148,6 @@ public:
             }
         }
         for (const string& word : query.minus_words) {
-	    if (!IsValidMinusWord(word)) {
-	        throw invalid_argument("Наличие недопустимых минус слов");
-	    }
             if (word_to_document_freqs_.count(word) == 0) {
                 continue;
             }
@@ -187,6 +179,9 @@ private:
     vector<string> SplitIntoWordsNoStop(const string& text) const {
         vector<string> words;
         for (const string& word : SplitIntoWords(text)) {
+            if (!IsValidWord(word)) {
+                throw invalid_argument("Наличие недопустимых символов в тексте добавляемого документа");
+            }
             if (!IsStopWord(word)) {
                 words.push_back(word);
             }
@@ -195,7 +190,7 @@ private:
     }
 
     static bool IsValidWord(const string& word) {
-	return none_of(word.begin(), word.end(), [](char a) {
+        return none_of(word.begin(), word.end(), [](char a) {
 						return a >= '\0' && a < ' ';});
     }
 
@@ -210,10 +205,7 @@ private:
         if (ratings.empty()) {
             return 0;
         }
-        int rating_sum = 0;
-        for (const int rating : ratings) {
-            rating_sum += rating;
-        }
+        int rating_sum = accumulate(ratings.begin(), ratings.end(), 0);
         return rating_sum / static_cast<int>(ratings.size());
     }
 
@@ -242,6 +234,12 @@ private:
         for (const string& word : SplitIntoWords(text)) {
             const QueryWord query_word = ParseQueryWord(word);
             if (!query_word.is_stop) {
+                if (!IsValidWord(query_word.data)) {
+                    throw invalid_argument("Наличие недопустимых символов в тексте запроса");
+                }
+                if (!IsValidMinusWord(query_word.data)) {
+                    throw invalid_argument("Наличие недопустимых минус слов");
+                }
                 if (query_word.is_minus) {
                     query.minus_words.insert(query_word.data);
                 } else {
