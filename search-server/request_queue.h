@@ -15,6 +15,7 @@ public:
     std::vector<Document> AddFindRequest(const std::string& raw_query);
 
     int GetNoResultRequests() const;
+    
 private:
     struct QueryResult {
         std::vector<Document> result;
@@ -22,9 +23,11 @@ private:
     };
     std::deque<QueryResult> requests_;
     const static int min_in_day_ = 1440;
-    int real_time = 0;
+    time_t real_time = 0;
     int count_empty_request_ = 0;
     const SearchServer& search_server_;
+    
+    void AddRequestAndEditEmptyRequests(std::vector<Document> result, bool result_is_empty);
 };
 
 template <typename DocumentPredicate>

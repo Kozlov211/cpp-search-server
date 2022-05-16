@@ -14,10 +14,6 @@ ostream& operator<<(ostream& output, Document document) {
     return output;
 }
 
-void PrintDocument(const Document& document) {
-    cout << document;
-}
-
 string PrintDocumentToString(const Document& document) {
     ostringstream out;
     out << document;
