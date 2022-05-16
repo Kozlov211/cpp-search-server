@@ -1,4 +1,3 @@
-//Вставьте сюда своё решение из урока «‎Очередь запросов».‎
 #pragma once
 #include <string>
 #include <vector>
@@ -23,7 +22,7 @@ public:
             {
                 std::string page;
                 for (auto it = it_begin; it < it_end; ++it) {
-                    page +=PrintDocumentToString(*it);
+                    page += PrintDocumentToString(*it);
                 }
                 pages_.push_back(page);
                 it_begin += page_size;

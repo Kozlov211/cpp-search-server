@@ -1,4 +1,3 @@
-//Вставьте сюда своё решение из урока «‎Очередь запросов».‎
 #include "document.h"
 #include <iostream>
 #include <sstream>
@@ -7,19 +6,21 @@ using namespace std;
 
 Document::Document(int id, double relevance, int rating) : id(id), relevance(relevance), rating(rating) {}
 
+ostream& operator<<(ostream& output, Document document) {
+       output << "{ "
+         << "document_id = " << document.id << ", "
+         << "relevance = " << document.relevance << ", "
+         << "rating = " << document.rating << " }";
+    return output;
+}
+
 void PrintDocument(const Document& document) {
-    cout << "{ "s
-         << "document_id = "s << document.id << ", "s
-         << "relevance = "s << document.relevance << ", "s
-         << "rating = "s << document.rating << " }"s << endl;
+    cout << document;
 }
 
 string PrintDocumentToString(const Document& document) {
     ostringstream out;
-    out << "{ "s
-        << "document_id = "s << document.id << ", "s
-        << "relevance = "s << document.relevance << ", "s
-        << "rating = "s << document.rating << " }"s;
+    out << document;
     return out.str();
 }
 

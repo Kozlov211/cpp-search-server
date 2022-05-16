@@ -1,49 +1,27 @@
-//Вставьте сюда своё решение из урока «‎Очередь запросов».‎
 #pragma once
 #include <string>
 #include <set>
 #include <vector>
 #include <tuple>
-#include <utility>
+#include <algorithm>
 #include <map>
 #include <string>
 #include "document.h"
 #include "string_processing.h"
-#include "read_input_functions.h"
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
 
 class SearchServer {
 public:
     template <typename StringContainer>
-    explicit SearchServer(const StringContainer& stop_words) : stop_words_(MakeUniqueNonEmptyStrings(stop_words)) {
-        for (const std::string& word : stop_words_) {
-            if (!IsValidWord(word)) {
-		throw std::invalid_argument("Стоп слово содержит недопустимые символы");
-            }				
-        }
-    }
+    explicit SearchServer(const StringContainer& stop_words);
 
     explicit SearchServer(const std::string& stop_words_text);
 
     void AddDocument(int document_id, const std::string& document, DocumentStatus status, const std::vector<int>& ratings);
 
     template <typename DocumentPredicate>
-    std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentPredicate document_predicate) const {
-        const Query query = ParseQuery(raw_query);
-        std::vector<Document> matched_documents = FindAllDocuments(query, document_predicate);
-        sort(matched_documents.begin(), matched_documents.end(), [](const Document& lhs, const Document& rhs) {
-	double epsilon = 1e-6;
-	if (std::abs(lhs.relevance - rhs.relevance) < epsilon) {
-            return lhs.rating > rhs.rating;
-	} else { 
-            return lhs.relevance > rhs.relevance;
-            } });
-    	if (matched_documents.size() > MAX_RESULT_DOCUMENT_COUNT) {
-    	    matched_documents.resize(MAX_RESULT_DOCUMENT_COUNT);
-    	    }
-    	return matched_documents;
-    }
+    std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentPredicate document_predicate) const;
 
     std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentStatus status) const;
     
@@ -93,7 +71,37 @@ private:
     double ComputeWordInverseDocumentFreq(const std::string& word) const;
 	
     template <typename DocumentPredicate>
-    std:: vector<Document> FindAllDocuments(const Query& query, DocumentPredicate document_predicate) const {
+    std:: vector<Document> FindAllDocuments(const Query& query, DocumentPredicate document_predicate) const;
+};
+
+    template <typename StringContainer>
+    SearchServer::SearchServer(const StringContainer& stop_words) : stop_words_(MakeUniqueNonEmptyStrings(stop_words)) {
+        for (const std::string& word : stop_words_) {
+            if (!IsValidWord(word)) {
+		throw std::invalid_argument("Стоп слово содержит недопустимые символы");
+            }				
+        }
+    }
+    
+    template <typename DocumentPredicate>
+    std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_query, DocumentPredicate document_predicate) const {
+        const Query query = ParseQuery(raw_query);
+        std::vector<Document> matched_documents = FindAllDocuments(query, document_predicate);
+        sort(matched_documents.begin(), matched_documents.end(), [](const Document& lhs, const Document& rhs) {
+	double epsilon = 1e-6;
+	if (std::abs(lhs.relevance - rhs.relevance) < epsilon) {
+            return lhs.rating > rhs.rating;
+	} else { 
+            return lhs.relevance > rhs.relevance;
+            } });
+    	if (matched_documents.size() > MAX_RESULT_DOCUMENT_COUNT) {
+    	    matched_documents.resize(MAX_RESULT_DOCUMENT_COUNT);
+    	    }
+    	return matched_documents;
+    }
+    
+    template <typename DocumentPredicate>
+    std:: vector<Document> SearchServer::FindAllDocuments(const Query& query, DocumentPredicate document_predicate) const {
 	std::map<int, double> document_to_relevance;
         for (const std::string& word : query.plus_words) {
             if (!IsValidWord(word)) {
@@ -127,5 +135,4 @@ private:
         }
     return  matched_documents;
     }
-};
 

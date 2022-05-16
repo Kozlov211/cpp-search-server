@@ -1,8 +1,8 @@
-//Вставьте сюда своё решение из урока «‎Очередь запросов».‎
 #include "search_server.h"
 #include <algorithm>
 #include <numeric>
 #include <cmath>
+
 using namespace std;
 
 SearchServer::SearchServer(const string& stop_words_text) : SearchServer(SplitIntoWords(stop_words_text)) {}

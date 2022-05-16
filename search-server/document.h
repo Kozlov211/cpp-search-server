@@ -1,7 +1,6 @@
-//Вставьте сюда своё решение из урока «‎Очередь запросов».‎
 #pragma once
 #include <string>
-#include <vector>
+#include <ostream>
 
 struct Document {
     Document() = default;
