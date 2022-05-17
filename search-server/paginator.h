@@ -37,7 +37,6 @@ public:
             const size_t current_page_size = std::min(page_size, left);
             const Iterator current_page_end = next(begin, current_page_size);
             pages_.push_back({begin, current_page_end});
-
             left -= current_page_size;
             begin = current_page_end;
         }

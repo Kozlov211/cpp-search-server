@@ -26,7 +26,7 @@ private:
     time_t real_time = 0;
     int count_empty_request_ = 0;
     const SearchServer& search_server_;
-    
+   
     void AddRequest(std::vector<Document> result);
 };
 
@@ -36,4 +36,4 @@ template <typename DocumentPredicate>
         std::vector<Document> result = search_server_.FindTopDocuments(raw_query, document_predicate);
         AddRequest(result);
         return result;
-    }
+}
