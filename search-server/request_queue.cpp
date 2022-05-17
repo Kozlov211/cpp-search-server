@@ -2,36 +2,29 @@
 
 using namespace std;
 
-void RequestQueue::AddRequestAndEditEmptyRequests(vector<Document> result, bool result_is_empty) {
-    requests_.push_back({result, result_is_empty});
-    count_empty_request_ += requests_.back().type;
+void RequestQueue::AddRequest(vector<Document> result) {
+    if (real_time > min_in_day_) {
+        count_empty_request_ -= requests_.front().type;
+	requests_.pop_front();
+	requests_.push_back({result, result.empty()});
+	count_empty_request_ += requests_.back().type;
+    } else {
+	requests_.push_back({result, result.empty()});
+	count_empty_request_ += requests_.back().type;
+   }
 }
 
 vector<Document> RequestQueue::AddFindRequest(const string& raw_query, DocumentStatus status) {
     ++real_time;
     vector<Document> result = search_server_.FindTopDocuments(raw_query, status);
-    if (real_time > min_in_day_) {
-        count_empty_request_ -= requests_.front().type;
-        requests_.pop_front();
-        AddRequestAndEditEmptyRequests(result, result.empty());
-    } else {
-        AddRequestAndEditEmptyRequests(result, result.empty());
-    }
+    AddRequest(result);
     return result;
 }
 
 vector<Document> RequestQueue::AddFindRequest(const string& raw_query) {
     ++real_time;
     vector<Document> result = search_server_.FindTopDocuments(raw_query);
-    if (real_time > min_in_day_) {
-        count_empty_request_ -= requests_.front().type;
-        requests_.pop_front();
-        requests_.push_back({result, result.empty()});
-        count_empty_request_ += requests_.back().type;
-    } else {
-        requests_.push_back({result, result.empty()});
-        count_empty_request_ += requests_.back().type;
-    }
+    AddRequest(result);
     return result;
 }
 

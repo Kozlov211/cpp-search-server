@@ -27,7 +27,7 @@ private:
     int count_empty_request_ = 0;
     const SearchServer& search_server_;
     
-    void AddRequestAndEditEmptyRequests(std::vector<Document> result, bool result_is_empty);
+    void AddRequest(std::vector<Document> result);
 };
 
 template <typename DocumentPredicate>

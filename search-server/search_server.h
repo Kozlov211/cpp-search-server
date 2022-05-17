@@ -10,6 +10,7 @@
 #include "string_processing.h"
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
+const double epsilon = 1e-6;
 
 class SearchServer {
 public:
@@ -88,7 +89,6 @@ private:
         const Query query = ParseQuery(raw_query);
         std::vector<Document> matched_documents = FindAllDocuments(query, document_predicate);
         sort(matched_documents.begin(), matched_documents.end(), [](const Document& lhs, const Document& rhs) {
-	double epsilon = 1e-6;
 	if (std::abs(lhs.relevance - rhs.relevance) < epsilon) {
             return lhs.rating > rhs.rating;
 	} else { 

@@ -17,7 +17,7 @@ enum class DocumentStatus {
     REMOVED,
 };
 
-void PrintDocument(const Document& document);
+std::ostream& operator<<(std::ostream& output, Document document);
 
 std::string PrintDocumentToString(const Document& document);
 
