@@ -34,14 +34,6 @@ template <typename DocumentPredicate>
     std::vector<Document> RequestQueue::AddFindRequest(const std::string& raw_query, DocumentPredicate document_predicate) {
         ++real_time;
         std::vector<Document> result = search_server_.FindTopDocuments(raw_query, document_predicate);
-        if (real_time > min_in_day_) {
-            count_empty_request_ -= requests_.front().type;
-            requests_.pop_front();
-            requests_.push_back({result, result.empty()});
-            count_empty_request_ += requests_.back().type;
-        } else {
-            requests_.push_back({result, result.empty()});
-            count_empty_request_ += requests_.back().type;
-        }
+        AddRequest(result);
         return result;
     }
