@@ -42,11 +42,11 @@ public:
         }
     }
 
-    auto begin() const {
+    Iterator begin() const {
         return pages_.begin();
     }
 
-    auto end() const {
+    Iterator end() const {
         return pages_.end();
     }
 
