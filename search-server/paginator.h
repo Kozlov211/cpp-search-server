@@ -8,7 +8,7 @@ class IteratorRange {
 public:
 	IteratorRange(Iterator begin, Iterator end)
 		: first_(begin), last_(end) , size_(distance(first_, last_)) {
-}
+	}
 
 	Iterator begin() const {
 		return first_;
@@ -30,7 +30,6 @@ private:
 template <typename Iterator>
 class Paginator {
 public:
-<<<<<<< HEAD
 	Paginator(Iterator begin, Iterator end, size_t page_size) {
 		for (size_t left = distance(begin, end); left > 0;) {
 			const size_t current_page_size = std::min(page_size, left);
@@ -41,11 +40,11 @@ public:
 		}
 	}
 
-	auto begin() const {
+	Iterator begin() const {
 		return pages_.begin();
 	}
 
-	auto end() const {
+	Iterator end() const {
 		return pages_.end();
 	}
 
@@ -53,29 +52,6 @@ public:
 		return pages_.size();
 	}
 	
-=======
-    Paginator(Iterator begin, Iterator end, size_t page_size) {
-        for (size_t left = distance(begin, end); left > 0;) {
-            const size_t current_page_size = std::min(page_size, left);
-            const Iterator current_page_end = next(begin, current_page_size);
-            pages_.push_back({begin, current_page_end});
-            left -= current_page_size;
-            begin = current_page_end;
-        }
-    }
-
-    Iterator begin() const {
-        return pages_.begin();
-    }
-
-    Iterator end() const {
-        return pages_.end();
-    }
-
-    size_t size() const {
-        return pages_.size();
-    }
->>>>>>> 82b079a9ba64f1fa4f53df45aabd6cfc143cee54
 private:
 	std::vector<IteratorRange<Iterator>> pages_;
 };
