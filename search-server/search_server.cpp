@@ -16,7 +16,7 @@ void SearchServer::AddDocument(int document_id, const string& document, Document
 	const double inv_word_count = 1.0 / words.size();
 	for (const string& word : words) {
 		word_to_document_freqs_[word][document_id] += inv_word_count;
-        word_frequencies[document_id][word] += inv_word_count;
+		word_frequencies[document_id][word] += inv_word_count;
 	}
 	documents_.emplace(document_id, DocumentData{ComputeAverageRating(ratings), status});
 }
@@ -58,29 +58,30 @@ tuple<vector<string>, DocumentStatus> SearchServer::MatchDocument(const string& 
 }
 
 set<int>::const_iterator SearchServer::begin() const {
-	return document_id_.begin();
+    return document_id_.begin();
 }
     
 set<int>::const_iterator SearchServer::end() const {
-	return document_id_.end();
+    return document_id_.end();
 }
 
 const map<string, double>& SearchServer::GetWordFrequencies(int document_id) const {
 	if (word_frequencies.count(document_id) != 0) {
 		return word_frequencies.at(document_id);
 	}
-	return word_frequencies_empty;
+	static const map<string, double> dummy;
+	return dummy;
 }
 
 void SearchServer::RemoveDocument (int document_id) {
 	documents_.erase(document_id);
 	document_id_.erase(document_id);
-	word_frequencies.erase(document_id);
-	for (auto& [word, document] : word_to_document_freqs_) {
-		if (document.count(document_id) != 0) {
-			document.erase(document_id);
+	for (const auto& [word, freq] : word_frequencies.at(document_id)) {
+		if (word_to_document_freqs_.at(word).count(document_id) != 0) {
+			word_to_document_freqs_.at(word).erase(document_id);
 		}
 	}
+	word_frequencies.erase(document_id);
 }
 
 bool SearchServer::IsStopWord(const string& word) const {
@@ -106,10 +107,7 @@ bool SearchServer::IsValidWord(const string& word) {
 }
 
 bool SearchServer::IsValidMinusWord(const string& word) {
-	if (word.empty() || word[0] == '-') {
-		return false;
-	}
-	return true;
+	return !(word.empty() || word[0] == '-');
 }
 
 int SearchServer::ComputeAverageRating(const vector<int>& ratings) {
