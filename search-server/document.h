@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 #include <ostream>
 
 struct Document {
@@ -20,4 +21,6 @@ enum class DocumentStatus {
 std::ostream& operator<<(std::ostream& output, Document document);
 
 std::string PrintDocumentToString(const Document& document);
+
+std::string PrintMatchDocumentResult(int id, std::vector<std::string> words, DocumentStatus status);
 

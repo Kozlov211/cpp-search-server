@@ -11,11 +11,12 @@ void SearchServer::AddDocument(int document_id, const string& document, Document
 	if (documents_.count(document_id) != 0 || document_id < 0) {
 		throw invalid_argument("Некорректный номер документа");
 	}
-	document_id_.push_back(document_id);
+	document_id_.insert(document_id);
 	const vector<string> words = SplitIntoWordsNoStop(document);
 	const double inv_word_count = 1.0 / words.size();
 	for (const string& word : words) {
 		word_to_document_freqs_[word][document_id] += inv_word_count;
+        word_frequencies[document_id][word] += inv_word_count;
 	}
 	documents_.emplace(document_id, DocumentData{ComputeAverageRating(ratings), status});
 }
@@ -56,8 +57,30 @@ tuple<vector<string>, DocumentStatus> SearchServer::MatchDocument(const string& 
 	return make_tuple(matched_words, documents_.at(document_id).status);
 }
 
-int SearchServer::GetDocumentId(int index) const {
-	return document_id_.at(index);
+set<int>::const_iterator SearchServer::begin() const {
+	return document_id_.begin();
+}
+    
+set<int>::const_iterator SearchServer::end() const {
+	return document_id_.end();
+}
+
+const map<string, double>& SearchServer::GetWordFrequencies(int document_id) const {
+	if (word_frequencies.count(document_id) != 0) {
+		return word_frequencies.at(document_id);
+	}
+	return word_frequencies_empty;
+}
+
+void SearchServer::RemoveDocument (int document_id) {
+	documents_.erase(document_id);
+	document_id_.erase(document_id);
+	word_frequencies.erase(document_id);
+	for (auto& [word, document] : word_to_document_freqs_) {
+		if (document.count(document_id) != 0) {
+			document.erase(document_id);
+		}
+	}
 }
 
 bool SearchServer::IsStopWord(const string& word) const {
