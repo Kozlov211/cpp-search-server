@@ -21,23 +21,23 @@ public:
 	std::map<Key, Value> BuildOrdinaryMap() {
 		std::map<Key, Value> buckets_all_;
 		for (auto& bucket : buckets_) {
-	    	std::lock_guard guard(bucket.mutex);
-	    	buckets_all_.merge(bucket.bucket);
+		std::lock_guard guard(bucket.mutex);
+		buckets_all_.merge(bucket.bucket);
 		}
 		return buckets_all_;
 	}
 
 	void Erase(Key value) {
 		for (auto& bucket: buckets_) {
-			if (bucket.bucket.count(value)) 
+			if (bucket.bucket.count(value)) {
 				std::lock_guard guard (bucket.mutex);
 				bucket.bucket.erase(value);
 				break;
-			}
+				}
 		}
 	}
 
-private:
+	private:
 	size_t bucket_count_;
 
 	struct Bucket {
