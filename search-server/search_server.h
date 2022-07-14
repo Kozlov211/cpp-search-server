@@ -33,26 +33,20 @@ public:
 
 	template <typename DocumentPredicate>
 	std::vector<Document> FindTopDocuments(std::string_view raw_query, DocumentPredicate document_predicate) const;
-
-	std::vector<Document> FindTopDocuments(std::string_view raw_query, DocumentStatus status) const;
-
-	std::vector<Document> FindTopDocuments(std::string_view raw_query) const;
-
 	template <typename ExecutionPolicy, typename DocumentPredicate>
 	std::vector<Document> FindTopDocuments(ExecutionPolicy policy, std::string_view raw_query, DocumentPredicate document_predicate) const;
-
 	template <typename ExecutionPolicy>
 	std::vector<Document> FindTopDocuments(ExecutionPolicy policy, std::string_view raw_query, DocumentStatus status) const;
-
 	template <typename ExecutionPolicy>
 	std::vector<Document> FindTopDocuments(ExecutionPolicy policy, std::string_view raw_query) const;
+	std::vector<Document> FindTopDocuments(std::string_view raw_query, DocumentStatus status) const;
+	std::vector<Document> FindTopDocuments(std::string_view raw_query) const;
 
 	int GetDocumentCount() const;
 
-	std::tuple<std::vector<std::string_view>, DocumentStatus> MatchDocument(std::string_view raw_query, int document_id) const;
-
 	template <typename ExecutionPolicy>
 	std::tuple<std::vector<std::string_view>, DocumentStatus> MatchDocument(ExecutionPolicy policy, std::string_view raw_query, int document_id) const;
+	std::tuple<std::vector<std::string_view>, DocumentStatus> MatchDocument(std::string_view raw_query, int document_id) const;
 
 	std::set<int>::const_iterator begin() const;
 	std::set<int>::const_iterator end() const;
