@@ -11,10 +11,10 @@ public:
 		Value& ref_to_value;
 	};
 
-	explicit ConcurrentMap(size_t bucket_count) : bucket_count_(bucket_count), buckets_(bucket_count) {};
+	explicit ConcurrentMap(size_t bucket_count) : buckets_(bucket_count) {};
 
 	Access operator[](const Key& key) {
-		const uint64_t index = static_cast<uint64_t>(key) % bucket_count_;
+		const uint64_t index = static_cast<uint64_t>(key) % buckets_.size();
 		return {std::lock_guard (buckets_[index].mutex), buckets_[index].bucket[key]};
 	}
 
@@ -38,7 +38,6 @@ public:
 	}
 
 	private:
-	size_t bucket_count_;
 
 	struct Bucket {
 		std::map<Key, Value> bucket;

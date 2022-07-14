@@ -133,7 +133,7 @@ SearchServer::QueryWord SearchServer::ParseQueryWord(string_view text) const {
 	return {text, is_minus, IsStopWord(text)};
 }
 
-SearchServer::Query SearchServer::ParseQuery(string_view text) const {
+SearchServer::Query SearchServer::ParseQuery(string_view text, bool is_policy) const {
     Query query;
 	for (const string_view& word : SplitIntoWords(text)) {
 		const QueryWord query_word = ParseQueryWord(word);

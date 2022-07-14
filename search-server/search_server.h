@@ -11,9 +11,11 @@
 #include <map>
 #include <string>
 #include <string_view>
+
+#include "concurrent_map.h"
 #include "document.h"
 #include "string_processing.h"
-#include "concurrent_map.h"
+
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
 const double EPSILON = 1e-6;
@@ -53,15 +55,13 @@ public:
 	std::tuple<std::vector<std::string_view>, DocumentStatus> MatchDocument(ExecutionPolicy policy, std::string_view raw_query, int document_id) const;
 
 	std::set<int>::const_iterator begin() const;
-
 	std::set<int>::const_iterator end() const;
 
 	const std::map<std::string_view, double>& GetWordFrequencies(int document_id) const;
 
-	void RemoveDocument(int document_id);
-
 	template <typename ExecutionPolicy>
 	void RemoveDocument(ExecutionPolicy&& policy, int document_id);
+	void RemoveDocument(int document_id);
 
 private:
 	struct DocumentData {
@@ -99,10 +99,7 @@ private:
 	std::vector<std::string_view> minus_words;
 	};
 
-	Query ParseQuery(std::string_view text) const;
-
-	template <typename ExecutionPolicy>
-	Query ParseQuery(ExecutionPolicy policy, std::string_view text) const;
+	Query ParseQuery(std::string_view text, bool is_policy = false) const;
 
 	double ComputeWordInverseDocumentFreq(std::string_view word) const;
 
@@ -123,23 +120,12 @@ SearchServer::SearchServer(const StringContainer& stop_words) : stop_words_(Make
 
 template <typename DocumentPredicate>
 std::vector<Document> SearchServer::FindTopDocuments(std::string_view raw_query, DocumentPredicate document_predicate) const {
-	const Query query = ParseQuery(raw_query);
-	std::vector<Document> matched_documents = FindAllDocuments(query, document_predicate);
-	sort(matched_documents.begin(), matched_documents.end(), [](const Document& lhs, const Document& rhs) {
-	if (std::abs(lhs.relevance - rhs.relevance) < EPSILON) {
-		return lhs.rating > rhs.rating;
-	} else {
-		return lhs.relevance > rhs.relevance;
-	} });
-	if (matched_documents.size() > MAX_RESULT_DOCUMENT_COUNT) {
-		matched_documents.resize(MAX_RESULT_DOCUMENT_COUNT);
-	}
-	return matched_documents;
+	return FindTopDocuments(std::execution::seq, raw_query, document_predicate);
 }
 
 template <typename ExecutionPolicy, typename DocumentPredicate>
 std::vector<Document> SearchServer::FindTopDocuments(ExecutionPolicy policy, std::string_view raw_query, DocumentPredicate document_predicate) const {
-	const Query query = ParseQuery(policy, raw_query);
+	const Query query = ParseQuery(raw_query, true);
 	std::vector<Document> matched_documents = FindAllDocuments(policy, query, document_predicate);
 	sort(policy, matched_documents.begin(), matched_documents.end(), [](const Document& lhs, const Document& rhs) {
 	if (std::abs(lhs.relevance - rhs.relevance) < EPSILON) {
@@ -212,7 +198,7 @@ std::vector<Document> SearchServer::FindAllDocuments(ExecutionPolicy policy, con
 			}});
 		}
 	});
-	std::for_each(query.minus_words.begin(), query.minus_words.end(), [this, &document_to_relevance, &document_predicate] (std::string_view word) {
+	std::for_each(policy, query.minus_words.begin(), query.minus_words.end(), [this, &document_to_relevance, &document_predicate] (std::string_view word) {
 		IsValidMinusWord(word);
 		if (word_to_document_freqs_.count(word) != 0) {
 			for (const auto [document_id, _] : word_to_document_freqs_.at(std::string(word))) {
@@ -243,30 +229,6 @@ void SearchServer::RemoveDocument(ExecutionPolicy&& policy, int document_id) {
 	documents_.erase(document_id);
 	document_id_.erase(document_id);
 	word_frequencies.erase(document_id);
-}
-
-template <typename ExecutionPolicy>
-SearchServer::Query SearchServer::ParseQuery(ExecutionPolicy policy, std::string_view text) const {
-	Query query;
-	for (const std::string_view& word : SplitIntoWords(text)) {
-		const QueryWord query_word = ParseQueryWord(word);
-		if (!query_word.is_stop) {
-			IsValidWord(query_word.data);
-			IsValidMinusWord(query_word.data);
-			if (query_word.is_minus) {
-				query.minus_words.push_back(query_word.data);
-			} else {
-				query.plus_words.push_back(query_word.data);
-			}
-		}
-	}
-	std::sort(query.minus_words.begin(), query.minus_words.end());
-	auto last = std::unique(query.minus_words.begin(), query.minus_words.end());
-	query.minus_words.erase(last, query.minus_words.end());
-	std::sort(query.plus_words.begin(), query.plus_words.end());
-	last = std::unique(query.plus_words.begin(), query.plus_words.end());
-	query.plus_words.erase(last, query.plus_words.end());
-	return query;
 }
 
 template <typename ExecutionPolicy>
