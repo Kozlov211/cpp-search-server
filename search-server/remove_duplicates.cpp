@@ -1,6 +1,7 @@
-#include "remove_duplicates.h"
 #include <iostream>
 #include <map>
+
+#include "remove_duplicates.h"
 
 using namespace std;
 

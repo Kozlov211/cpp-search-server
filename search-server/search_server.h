@@ -1,4 +1,5 @@
 #pragma once
+
 #include <string>
 #include <set>
 #include <vector>
@@ -16,7 +17,6 @@
 #include "document.h"
 #include "string_processing.h"
 
-
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
 const double EPSILON = 1e-6;
 
@@ -24,9 +24,7 @@ class SearchServer {
 public:
 	template <typename StringContainer>
 	explicit SearchServer(const StringContainer& stop_words);
-
 	explicit SearchServer(const std::string& stop_words_text);
-
 	explicit SearchServer(std::string_view stop_words_text);
 
 	void AddDocument(int document_id, std::string_view document, DocumentStatus status, const std::vector<int>& ratings);
@@ -229,9 +227,6 @@ template <typename ExecutionPolicy>
 std::tuple<std::vector<std::string_view>, DocumentStatus> SearchServer::MatchDocument(ExecutionPolicy policy, std::string_view raw_query, int document_id) const {
 	if (!document_id_.count(document_id)) {
 		throw std::out_of_range("Некорректный номер документа");
-	}
-	if (std::is_same<ExecutionPolicy, std::execution::sequenced_policy>::value) {
-		return MatchDocument(raw_query, document_id);
 	}
 	Query query = ParseQuery(policy, raw_query);
 	if (any_of(policy, query.minus_words.begin(), query.minus_words.end(), [this, document_id](const std::string_view& word) {

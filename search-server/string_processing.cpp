@@ -1,5 +1,6 @@
-#include "string_processing.h"
 #include <iostream>
+
+#include "string_processing.h"
 
 using namespace std;
 

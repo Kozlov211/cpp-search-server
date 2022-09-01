@@ -1,4 +1,5 @@
 #pragma once
+
 #include "search_server.h"
 #include <vector>
 #include <deque>
@@ -21,12 +22,14 @@ private:
 		std::vector<Document> result;
 		bool type = false;
 	};
+
 	std::deque<QueryResult> requests_;
 	const static int min_in_day_ = 1440;
 	time_t real_time = 0;
 	int count_empty_request_ = 0;
 	const SearchServer& search_server_;
 
+private:
 	void AddRequest(std::vector<Document> result);
 };
 

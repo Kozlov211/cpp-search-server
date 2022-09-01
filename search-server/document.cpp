@@ -1,8 +1,9 @@
-#include "document.h"
 #include <sstream>
 #include <string>
 #include <vector>
 #include <iostream>
+
+#include "document.h"
 
 using namespace std;
 

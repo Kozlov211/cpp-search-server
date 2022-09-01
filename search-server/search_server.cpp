@@ -1,9 +1,11 @@
-#include "search_server.h"
 #include <algorithm>
 #include <numeric>
 #include <cmath>
 #include <stdexcept>
 #include <iostream>
+
+#include "search_server.h"
+
 using namespace std;
 
 SearchServer::SearchServer(const string& stop_words_text) : SearchServer(SplitIntoWords(stop_words_text)) {}
