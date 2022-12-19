@@ -10,7 +10,7 @@ void RemoveDuplicates(SearchServer& search_server) {
 	set<set<string>> originals;
 	vector<int> duplicates;
 	set<string> words;
-	map<string, double> word_frequencies;
+	map<string_view, double> word_frequencies;
 	for (const int document_id : search_server) {
 		word_frequencies = search_server.GetWordFrequencies(document_id);
 		words = AddWordToSet(word_frequencies);
@@ -26,10 +26,10 @@ void RemoveDuplicates(SearchServer& search_server) {
 	}
 }
 
-set<string> AddWordToSet(map<string, double> word_frequencies) {
+set<string> AddWordToSet(map<string_view, double> word_frequencies) {
 	set<string> result;
-	for (const auto [word, freq] : word_frequencies) {
-		result.insert(word);
+	for (const auto& [word, freq] : word_frequencies) {
+		result.insert(string(word));
 	}
 	return result;
 }
